@@ -1,0 +1,61 @@
+version: '3.8'
+
+# COSH Grid — distributed cache cluster
+# 1 gateway + 2 cache nodes, replication-factor=2
+#
+# Usage:
+#   docker compose up
+#   PUT: curl -X PUT http://localhost:8080/cache/mykey -H "Content-Type: text/plain" -d "myvalue"
+#   GET: curl http://localhost:8080/cache/mykey
+
+services:
+
+  gateway:
+    build:
+      context: ./cosh-grid/cosh-grid-gateway
+      dockerfile: Dockerfile
+    container_name: cosh-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_PORT=8080
+      - COSH_GATEWAY_NODES=node1:8080,node2:8080
+      - COSH_GATEWAY_REPLICATION_FACTOR=2
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,prometheus
+    depends_on:
+      - node1
+      - node2
+    networks:
+      - cosh-net
+
+  node1:
+    build:
+      context: ./cosh-grid/cosh-grid-node
+      dockerfile: Dockerfile
+    container_name: cosh-node1
+    ports:
+      - "8081:8080"
+    environment:
+      - SERVER_PORT=8080
+      - COSH_NODE_MAX_SIZE=5000
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,prometheus
+    networks:
+      - cosh-net
+
+  node2:
+    build:
+      context: ./cosh-grid/cosh-grid-node
+      dockerfile: Dockerfile
+    container_name: cosh-node2
+    ports:
+      - "8082:8080"
+    environment:
+      - SERVER_PORT=8080
+      - COSH_NODE_MAX_SIZE=5000
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,prometheus
+    networks:
+      - cosh-net
+
+networks:
+  cosh-net:
+    driver: bridge

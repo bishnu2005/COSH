@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.cosh</groupId>
+        <artifactId>cosh</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>cosh-benchmark</artifactId>
+    <name>COSH Benchmark</name>
+    <description>
+        COSH Benchmark — standalone research harness (Phase 4).
+        Workload generators (uniform, Zipf, hot-key), policy comparisons
+        (LRU vs SampledLRU vs Adaptive), structured CSV output.
+        No Spring; standalone JUnit execution.
+    </description>
+
+    <dependencies>
+        <!-- Core engine under test -->
+        <dependency>
+            <groupId>com.cosh</groupId>
+            <artifactId>cosh-core</artifactId>
+        </dependency>
+        <!-- Karui embedded API (provides CoshKarui.start()) -->
+        <dependency>
+            <groupId>com.cosh</groupId>
+            <artifactId>cosh-karui</artifactId>
+        </dependency>
+        <!-- Optional adaptive policy (SPI — present on classpath during benchmark) -->
+        <dependency>
+            <groupId>com.cosh</groupId>
+            <artifactId>cosh-adaptive</artifactId>
+        </dependency>
+
+        <!-- CSV output -->
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.9</version>
+        </dependency>
+
+        <!-- Test harness (JUnit 5 — also used as the runner for the benchmark suite) -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Logging at runtime -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.9</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>

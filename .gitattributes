@@ -1,0 +1,12 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Specify text/binary properties to maintain uniform line endings
+*.java text diff=java
+*.xml text
+*.md text
+*.properties text
+
+# Exclude binary files from line ending normalization
+*.jar binary
+*.class binary

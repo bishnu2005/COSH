@@ -1,0 +1,21 @@
+server:
+  port: 8080
+
+cosh:
+  gateway:
+    nodes: ${COSH_GATEWAY_NODES:localhost:8081}
+    replication-factor: ${COSH_GATEWAY_REPLICATION_FACTOR:1}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+spring:
+  application:
+    name: cosh-grid-gateway

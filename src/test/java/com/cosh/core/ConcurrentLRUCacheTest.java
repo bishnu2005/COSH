@@ -1,19 +1,22 @@
 package com.cosh.core;
 
 import org.junit.jupiter.api.Test;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ConcurrentLRUCacheTest {
+class ConcurrentLRUCacheTest {
 
     @Test
-    public void testEviction() {
+    void evictsLeastRecentlyUsed() {
         Cache<String, String> cache = new ConcurrentLRUCache<>(2);
         cache.put("k1", "v1");
         cache.put("k2", "v2");
-        cache.put("k3", "v3"); // Should evict k1
+        cache.put("k3", "v3"); // evicts k1
 
         assertNull(cache.get("k1"));
         assertEquals("v2", cache.get("k2"));
@@ -21,12 +24,12 @@ public class ConcurrentLRUCacheTest {
     }
 
     @Test
-    public void testNodeReorderingOnGet() {
+    void getReordersNode() {
         Cache<String, String> cache = new ConcurrentLRUCache<>(2);
         cache.put("k1", "v1");
         cache.put("k2", "v2");
-        cache.get("k1"); // k1 becomes most recently used
-        cache.put("k3", "v3"); // Should evict k2
+        cache.get("k1");       // k1 becomes most recently used
+        cache.put("k3", "v3"); // evicts k2
 
         assertNull(cache.get("k2"));
         assertEquals("v1", cache.get("k1"));
@@ -34,23 +37,31 @@ public class ConcurrentLRUCacheTest {
     }
 
     @Test
-    public void testConcurrentAccess() throws InterruptedException {
-        Cache<String, String> cache = new ConcurrentLRUCache<>(100);
+    void concurrentDistinctKeyInsertsAreAllRetained() throws InterruptedException {
+        ConcurrentLRUCache<String, String> cache = new ConcurrentLRUCache<>(100);
         int threadCount = 50;
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-        CountDownLatch latch = new CountDownLatch(threadCount);
+        CountDownLatch start = new CountDownLatch(1);
+        CountDownLatch done = new CountDownLatch(threadCount);
 
         for (int i = 0; i < threadCount; i++) {
             final int index = i;
             executor.submit(() -> {
-                cache.put("key" + index, "value" + index);
-                cache.get("key" + index);
-                latch.countDown();
+                try {
+                    start.await();
+                    cache.put("key" + index, "value" + index);
+                    assertEquals("value" + index, cache.get("key" + index));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } finally {
+                    done.countDown();
+                }
             });
         }
-
-        latch.await();
-        assertEquals(50, cache.size());
+        start.countDown();
+        assertTrue(done.await(10, TimeUnit.SECONDS));
         executor.shutdown();
+        assertEquals(50, cache.size());
+        cache.verifyIntegrity();
     }
 }
